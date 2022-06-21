@@ -1,73 +1,52 @@
-let axios = require("axios");
+const authorModel = require("../models/authorModel");
+const validator = require("validator");
 
-// ........................Get Weather data of London by using of Axios and weather url............................//
-let getWeatherDataOfLondon = async function (req, res) {
+////Create Author///
+const createAuthor = async function (req, res) {
     try {
-      let country = req.query.q;
-      let apiKey = req.query.appid;
-      let options = {
-        method: "get",
-        url: `http://api.openweathermap.org/data/2.5/weather?q=${country}&appid=${apiKey}`,
-      };
-      let result = await axios(options);
-      console.log(result);
-      let data = result.data;
-      res.status(200).send({ msg: data, status: true });
-    } catch (err) {
-      console.log(err);
-      res.status(500).send({ msg: err.message });
-    }
-  };
-
-
-
-  //.........................Get temperature of London...........................//
-  let getTemperature = async function (req, res) {
-    try {
-      let country = req.query.q;
-      let apiKey = req.query.appid;
-      let options = {
-        method: "get",
-        url: `http://api.openweathermap.org/data/2.5/weather?q=${country}&appid=${apiKey}`,
-      };
-      let result = await axios(options);
-      console.log(result);
-      let data = result.data.main.temp;
-      res.status(200).send({ country: country, temperature: data });
-    } catch (err) {
-      console.log(err);
-      res.status(500).send({ msg: err.message });
-    }
-  };
-
-
- //....................Get Weather of different cities with assending order temperature..........................//
-  let getWeatherDataByCity = async function (req, res) {
-    try {
-      const apiKey = req.query.appid;
-      let cities = req.query.q;
   
-      cities = cities.split(",");
+      const body = req.body;
   
-      let response = [];
-      for (let i = 0; i < cities.length; i++) {
-          const city = cities[i].trim()
-        const options = {
-          method: "get",
-          url: `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`,
-        };
-        let result = await axios(options);
-        response.push({"city":city,"temp":result.data.main.temp})
+      const fnameData = body.fname;
+      if (!fnameData)
+        return res.status(400).send({ status: false, msg: "Provide first name" });
+  
+      const lnameData = body.lname;
+      if (!lnameData)
+        return res.status(400).send({ status: false, msg: "Provide last name" });
+  
+      const passwordData = body.password;
+      if (!passwordData)
+        return res.status(400).send({ status: false, msg: "Provide password" });
+  
+      const emailData = body.email;
+      if (!emailData)
+        return res.status(400).send({ status: false, msg: "Provide email" });
+  
+      const validEmail = validator.isEmail(emailData);
+      if (validEmail === false)
+        return res.status(400).send({ status: false, msg: "Please enter valid email" })
+  
+      const checkEmail = await authorModel.findOne({ email: emailData });
+      if (checkEmail)
+        return res.status(400).send({ status: false, msg: "This email already exists" });
+  
+      const titleData = body.title;
+      if(!titleData)
+      return  res.status(400).send({ status: false, msg: "Provide title" });
+  
+      if (titleData) {
+        if (titleData == "Mr" || titleData == "Mrs" || titleData == "Miss") {
+  
+          const authorCreation = await authorModel.create(body);
+          return res.status(201).send({ status: true, data: authorCreation });
+        }
+        else
+          return res.status(400).send({ status: false, msg: "Please choose title from Mr, Mrs and Miss " });
       }
-      const sorting = response.sort(function(a,b){return(a.temp - b.temp)})
-      res.status(200).send({sorting});
-    } catch (err) {
-      console.log(err);
-      res.status(500).send({ msg: err.message });
+    }
+    catch (err) {
+      res.status(500).send({ status: false, Error: err.message });
     }
   };
-
-
-module.exports.getWeatherDataOfLondon = getWeatherDataOfLondon;
-module.exports.getTemperature = getTemperature;
-module.exports.getWeatherDataByCity = getWeatherDataByCity;
+  module.exports.createAuthor = createAuthor;
