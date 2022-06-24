@@ -1,24 +1,41 @@
-const express = require('express');
-
+const express = require("express");
 const router = express.Router();
+const authorController = require("../controllers/authorController");
+const blogsController = require("../controllers/blogsController");
+const authenticateMW = require("../middlewares/authenticateMid");
+const authorizeMW = require("../middlewares/authorizeMid");
 
-const authorController = require("../controllers/authorController")
+// 1)
+router.post("/createAuthor", authorController.createAuthor);
 
-const blogController = require("../controllers/blogController")
+//2)
+router.post("/login", authorController.loginAuthor);
 
+//3)
+router.post("/blogs", authenticateMW.mid1, blogsController.createBlogs);
 
-router.get("/test-me", function (req, res) {
+//4)
+router.get("/blogs", authenticateMW.mid1, blogsController.getBlogs);
 
-    res.send("My first ever api!")
+//5)
+router.put(
+  "/blogs/:blogId",
+  authorizeMW.authrAuth,
+  blogsController.updateBlogs
+);
 
-})
+//6)
+router.delete(
+  "/blogs/:blogId",
+  authorizeMW.authrAuth,
+  blogsController.deletedBlogs
+);
 
-/// Requested APIs///
-router.post("/authors", authorController.createAuthor)
-router.post("/blogs", blogController.createBlog)
-router.get("/blogs",blogController.getBlogs)
-router.put("/blogs/:blogId", blogController.updateBlog)
-router.delete('/blogs/:blogId',blogController.deleteBlog)
-router.delete('/blogs',blogController.blogDeleteQuery)
+// 7)
+router.delete(
+  "/blogs",
+  authenticateMW.mid1,
+  blogsController.deletedUsingQueryParams
+);
 
 module.exports = router;
